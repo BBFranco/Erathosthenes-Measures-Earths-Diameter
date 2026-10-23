@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Eratosthenes measures the Earth</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Gentium+Plus:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+:root{
+  --clay:#c8642b; --brt:#e8844a; --ochre:#e3a53b; --slip:#f0e4c8; --black:#15100c; --red:#9a2f22; --blue:#2a8bb3; --blue-d:#16658c; --blue-x:#0d4f73;
+  --page:#c8642b; --panel:#f0e4c8; --ink:#1b120b; --ink2:#4a3626; --frame:#15100c; --keyc:#15100c;
+  --keymask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='17' viewBox='0 0 24 17'><path d='M0 15H4V2H20V12H10V7H15M20 12V15H24' fill='none' stroke='black' stroke-width='2.4'/></svg>");
+  --scallop:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='30' viewBox='0 0 120 30'><g stroke='%2315100c' stroke-width='1.6'><ellipse cx='15' cy='15' rx='14' ry='13' fill='%23ffc22e'/><ellipse cx='45' cy='15' rx='14' ry='13' fill='%235bbbd8'/><ellipse cx='75' cy='15' rx='14' ry='13' fill='%23f0e4c8'/><ellipse cx='105' cy='15' rx='14' ry='13' fill='%2315100c'/></g><path d='M8 7V23M12 4V26M16 3V27M20 4V26M24 7V23' stroke='%2315100c' stroke-width='1.3' opacity='.55'/><path d='M38 7V23M42 4V26M46 3V27M50 4V26M54 7V23' stroke='%23f0e4c8' stroke-width='1.3'/><g fill='%2315100c'><circle cx='68' cy='9' r='1.7'/><circle cx='75' cy='7' r='1.7'/><circle cx='82' cy='9' r='1.7'/><circle cx='66' cy='15' r='1.7'/><circle cx='72' cy='15' r='1.7'/><circle cx='78' cy='15' r='1.7'/><circle cx='84' cy='15' r='1.7'/><circle cx='68' cy='21' r='1.7'/><circle cx='75' cy='23' r='1.7'/><circle cx='82' cy='21' r='1.7'/></g><g fill='%23f0e4c8'><circle cx='98' cy='9' r='1.7'/><circle cx='105' cy='7' r='1.7'/><circle cx='112' cy='9' r='1.7'/><circle cx='96' cy='15' r='1.7'/><circle cx='102' cy='15' r='1.7'/><circle cx='108' cy='15' r='1.7'/><circle cx='114' cy='15' r='1.7'/><circle cx='98' cy='21' r='1.7'/><circle cx='105' cy='23' r='1.7'/><circle cx='112' cy='21' r='1.7'/></g></svg>");
+  --stripe:repeating-linear-gradient(90deg,#15100c 0 5px,#f0e4c8 5px 10px,#ffc22e 10px 15px,#f0e4c8 15px 20px);
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--page:#3b1b0d; --panel:#231a13; --ink:#f0e4c8; --ink2:#c7b794; --frame:#c8642b; --keyc:#c8642b; color-scheme:dark}
+}
+:root[data-theme="dark"]{--page:#3b1b0d; --panel:#231a13; --ink:#f0e4c8; --ink2:#c7b794; --frame:#c8642b; --keyc:#c8642b; color-scheme:dark}
+
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:400 1.2rem/1.6 'Gentium Plus','Palatino Linotype',Palatino,Georgia,serif}
+h1,h2,.ui{font-family:'Cinzel','Trajan Pro','Palatino Linotype',Georgia,serif}
+svg{display:block;width:100%;height:auto}
+
+/* meander (Greek key) */
+.key{height:25px;background:var(--keyc);-webkit-mask-image:var(--keymask);mask-image:var(--keymask);-webkit-mask-size:34px 24px;mask-size:34px 24px;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
+.band{margin-top:clamp(28px,5vw,64px)}
+
+#bar{position:fixed;left:0;top:env(safe-area-inset-top,0px);width:6px;height:0;background:var(--ochre);z-index:20;pointer-events:none;box-shadow:1px 0 0 var(--black)}
+
+/* ---------- temple hero ---------- */
+.temple{padding:clamp(14px,3vw,40px) clamp(14px,5vw,70px) 0;overflow:hidden}
+.facade{max-width:1100px;margin:0 auto}
+.ped{filter:drop-shadow(0 6px 0 rgba(21,16,12,.35))}
+.arch{background:#15100c;color:#f0e4c8;text-align:center}
+.arch .key{--keyc:#c8642b}
+.arch .in{padding:clamp(18px,3.5vw,40px) clamp(16px,4vw,56px)}
+.arch h1{margin:0;font-weight:700;font-size:clamp(1.7rem,5.2vw,4rem);line-height:1.1;letter-spacing:.05em}
+.arch p{margin:1rem auto 0;max-width:34em;font-style:italic;font-size:clamp(1.05rem,1.8vw,1.35rem);color:rgba(240,228,200,.92)}
+.cols{display:flex;align-items:stretch;background:var(--black)}
+.col{flex:0 0 clamp(20px,6vw,72px);background:repeating-linear-gradient(90deg,#f0e4c8 0 5px,#c9b78e 5px 7px,#f0e4c8 7px 12px);border-top:12px solid #d8c79d;border-bottom:12px solid #d8c79d;position:relative}
+.col::before,.col::after{content:"";position:absolute;left:-4px;right:-4px;height:8px;background:#e5d7b6;border:2px solid var(--black)}
+.col::before{top:-22px}.col::after{bottom:-22px}
+.cols svg{flex:1;min-width:0}
+.steps{margin-top:22px}
+.steps i{display:block;height:12px;background:#e5d7b6;border-top:3px solid var(--black)}
+.steps i:nth-child(2){margin:0 -2%}.steps i:nth-child(3){margin:0 -4%}
+
+.hr{stroke:#e3a53b;stroke-width:2.2;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw .9s cubic-bezier(.3,.6,.2,1) both;animation-delay:calc(.8s + var(--i)*.07s)}
+.hr.hot{stroke-width:3.6}
+.sunG{animation:sunIn 1.7s cubic-bezier(.16,.8,.2,1) both}
+.earthG{animation:fadeIn .9s ease 1.2s both}
+.marks{animation:fadeIn .6s ease 2.2s both}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 2.6s ease-out 2.6s infinite}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes sunIn{from{transform:translateX(-170px);opacity:0}}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes pulse{from{transform:scale(1);opacity:.8}to{transform:scale(3.4);opacity:0}}
+@keyframes flow{to{stroke-dashoffset:-16}}
+
+.zone{padding-bottom:clamp(40px,6vw,76px)}
+.zone.o{}
+.zone.b{}
+/* ---------- sections ---------- */
+.sec{display:grid;grid-template-columns:1fr;gap:22px;max-width:1240px;margin:0 auto;padding:clamp(30px,5vw,64px) clamp(14px,4vw,60px) 0}
+.panel{background:var(--panel);color:var(--ink);padding:clamp(20px,3vw,36px);border:5px solid var(--frame);box-shadow:inset 0 0 0 4px var(--panel),inset 0 0 0 6px var(--frame)}
+.panel p{margin:0 0 1rem;max-width:33em}
+.panel p:last-child{margin-bottom:0}
+.hd{display:flex;align-items:center;gap:16px;margin:0 0 1.3rem}
+.roundel{flex:0 0 auto;width:58px;height:58px;border-radius:50%;background:var(--black);color:var(--slip);display:grid;place-items:center;font:700 2rem/1 'Gentium Plus',Georgia,serif;box-shadow:0 0 0 3px var(--panel),0 0 0 5px var(--ochre),0 0 0 7px var(--black)}
+h2{margin:0;font-weight:700;font-size:clamp(1.35rem,2.5vw,2rem);line-height:1.15;letter-spacing:.03em}
+.plate{background:var(--black);color:var(--slip);padding:0 clamp(14px,2.4vw,30px) clamp(14px,2.4vw,30px);border:5px solid var(--frame)}
+.plate::before{content:"";display:block;height:25px;margin:14px 0 14px;background:var(--brt);-webkit-mask-image:var(--keymask);mask-image:var(--keymask);-webkit-mask-size:34px 24px;mask-size:34px 24px;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
+@media (min-width:920px){
+  .sec{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:start;gap:28px}
+  .sec .panel{position:sticky;top:22px}
+}
+
+/* svg language */
+.ray{stroke:#e3a53b;stroke-width:2.4;stroke-dasharray:7 9;animation:flow 1.3s linear infinite}
+.ray.hot{stroke-width:3.6}
+.ln{stroke:#f0e4c8;stroke-width:2.6;fill:none;stroke-linecap:round}
+.dash{stroke-dasharray:3 8;stroke-linecap:round;opacity:.7}
+.ln.blk{stroke:#15100c;opacity:.85}
+.t{font-family:'Cinzel','Trajan Pro',Georgia,serif;font-weight:700;font-size:20px;fill:#f0e4c8;letter-spacing:.04em}
+.t2{font-family:'Gentium Plus',Georgia,serif;font-style:italic;font-size:19px;fill:rgba(240,228,200,.78)}
+.gr{font-family:'Gentium Plus',Georgia,serif;font-weight:700;font-size:26px;fill:#e3a53b;letter-spacing:0}
+.tg{fill:#e3a53b}
+.tt{fill:#ffe39a}
+.halo{paint-order:stroke;stroke:var(--halo,#15100c);stroke-width:6px;stroke-linejoin:round}
+.earth{fill:#c8642b;stroke:#f0e4c8;stroke-width:3.5}
+.grid{fill:none;stroke:#15100c;stroke-width:1.6;opacity:.45}
+.stick{stroke:#f0e4c8;stroke-width:5;stroke-linecap:round}
+.st{opacity:0;transition:opacity .8s ease}
+.st.on{opacity:1}
+
+/* controls */
+.row{display:flex;gap:14px 18px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.ui{font-weight:600;font-size:.85rem;letter-spacing:.06em}
+.read{font-family:'Cinzel',Georgia,serif;font-weight:700;font-size:.92rem;letter-spacing:.04em;color:var(--ochre);font-variant-numeric:lining-nums tabular-nums;min-height:1.6em}
+.ticks{display:flex;justify-content:space-between;font:600 .78rem 'Cinzel',Georgia,serif;letter-spacing:.06em;color:rgba(240,228,200,.65);margin-top:-2px}
+.btn{font:700 .82rem 'Cinzel',Georgia,serif;letter-spacing:.08em;background:var(--brt);color:var(--black);border:2px solid var(--slip);padding:.7em 1.2em;cursor:pointer;border-radius:0}
+.btn.ghost{background:transparent;color:var(--slip)}
+.btn:hover:not(:disabled){background:var(--slip);color:var(--black)}
+.btn:disabled{opacity:.35;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--slip);outline-offset:3px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:rgba(240,228,200,.5)}
+input[type=range]::-moz-range-track{height:4px;background:rgba(240,228,200,.5)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--ochre);margin-top:-10px;border:3px solid var(--black);box-shadow:0 0 0 2px var(--slip)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--ochre);border:3px solid var(--black);box-shadow:0 0 0 2px var(--slip)}
+
+.cap{font-size:1.1rem;line-height:1.45;margin:14px 0 0;min-height:4.4em;max-width:34em}
+.dots{display:flex;gap:8px;align-items:center}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--slip);padding:0;background:transparent;cursor:pointer}
+.dot.on{background:var(--ochre)}
+
+/* calculator */
+.calc{display:grid;grid-template-columns:1fr;gap:22px}
+@media (min-width:660px){.calc{grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:28px;align-items:center}}
+.wedge{animation:pop .55s cubic-bezier(.2,.8,.2,1) both;transform-origin:210px 210px}
+.noanim .wedge{animation:none}
+.w0{fill:#e3a53b}.w1{fill:#c8642b}.w2{fill:#9a2f22}
+.hub{fill:#15100c}
+@keyframes pop{from{opacity:0;transform:scale(.94)}}
+.fld{margin-bottom:6px}
+.fld .lab{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.seg{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px}
+.seg label{cursor:pointer}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{display:block;padding:.55em .9em;font:600 .78rem 'Cinzel',Georgia,serif;letter-spacing:.05em;border:2px solid rgba(240,228,200,.55)}
+.seg input:checked + span{background:var(--ochre);color:var(--black);border-color:var(--ochre)}
+.seg input:focus-visible + span{outline:3px solid var(--slip);outline-offset:3px}
+.eq{font:600 .88rem 'Cinzel',Georgia,serif;letter-spacing:.03em;color:rgba(240,228,200,.85);margin:12px 0 0;font-variant-numeric:lining-nums tabular-nums}
+.big{font:800 clamp(2rem,5vw,3rem)/1 'Cinzel',Georgia,serif;color:var(--slip);margin:8px 0 0;font-variant-numeric:lining-nums tabular-nums}
+.big small{font-size:.42em;font-weight:600;color:rgba(240,228,200,.7)}
+.verdict{margin:8px 0 14px;color:var(--ochre);font:700 .92rem 'Cinzel',Georgia,serif;letter-spacing:.04em}
+.bl{display:flex;justify-content:space-between;gap:10px;font:600 .75rem 'Cinzel',Georgia,serif;letter-spacing:.05em;color:rgba(240,228,200,.8);margin-top:8px;font-variant-numeric:lining-nums tabular-nums}
+.track{height:12px;background:rgba(240,228,200,.14);margin-top:4px}
+.track i{display:block;height:100%;width:0;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.track .g{background:var(--ochre)}.track .q{background:var(--slip)}
+
+/* errors */
+.errs .panel{position:static}
+.lead{max-width:34em;margin:0 0 1.4rem}
+.ledger{margin:0;padding:0;list-style:none;border-top:3px solid var(--frame)}
+.ledger li{display:grid;grid-template-columns:1fr;gap:4px 32px;padding:16px 0;border-bottom:2px dotted var(--frame)}
+.ledger b{font:700 1.02rem/1.25 'Cinzel',Georgia,serif;letter-spacing:.04em}
+.ledger b::before{content:"";display:inline-block;width:9px;height:9px;background:var(--red);transform:rotate(45deg);margin-right:12px;vertical-align:1px}
+.ledger span{color:var(--ink2);max-width:34em}
+@media (min-width:760px){.ledger li{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+.verdictline{margin:1.6rem 0 0!important;max-width:36em;font-size:1.25rem}
+
+footer{margin-top:clamp(48px,8vw,100px);background:var(--black);color:var(--slip)}
+footer .key{--keyc:#c8642b}
+footer .in{padding:clamp(28px,5vw,64px) clamp(20px,6vw,88px) clamp(40px,6vw,80px);max-width:1240px;margin:0 auto}
+footer h2{margin-bottom:1.3rem}
+footer ul{margin:0;padding:0;list-style:none;display:grid;gap:12px;max-width:38em}
+footer li{padding-left:30px;position:relative}
+footer li::before{content:"";position:absolute;left:2px;top:.5em;width:10px;height:10px;background:var(--ochre);transform:rotate(45deg)}
+footer .note{max-width:38em;margin:1.8rem 0 0;color:rgba(240,228,200,.78);font-size:1rem}
+.inscr{margin:2.4rem 0 0;padding-top:1.4rem;border-top:3px double rgba(240,228,200,.4);font:700 clamp(1.1rem,3vw,1.8rem)/1.3 'Gentium Plus',Georgia,serif;letter-spacing:.18em;color:var(--ochre)}
+.inscr small{display:block;font:italic 400 1rem 'Gentium Plus',Georgia,serif;letter-spacing:0;color:rgba(240,228,200,.7);margin-top:.3rem}
+
+/* ---------- slide deck: every screen is a 1600x900 (16:9) stage scaled to the viewport ---------- */
+.stage{display:contents}
+#dots,#hint{display:none}
+html.deck,html.deck body{height:100%;overflow:hidden;background:var(--page)}
+html.deck{font-size:22px}
+html.deck #bar{display:none}
+html.deck #deck{position:fixed;inset:0;overflow:hidden}
+html.deck main{display:contents}
+html.deck .band{display:none}
+html.deck .screen{position:absolute;left:0;top:0;width:100%;height:100%;padding:0;margin:0;background:var(--page);overflow:hidden;transition:transform .8s cubic-bezier(.7,0,.2,1)}
+html.deck .stage{display:block;position:absolute;left:50%;top:50%;width:1600px;height:900px;margin:-450px 0 0 -800px;transform:scale(var(--s,1));overflow:hidden}
+html.deck .stage::before{content:"";position:absolute;left:0;right:0;top:8px;height:25px;background:var(--keyc);-webkit-mask-image:var(--keymask);mask-image:var(--keymask);-webkit-mask-size:34px 24px;mask-size:34px 24px;-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x}
+html.deck .sec{max-width:none;margin:0;height:100%;padding:62px 52px 38px;grid-template-columns:500px minmax(0,1fr);gap:40px;align-items:stretch}
+html.deck .sec .panel{position:static;align-self:start;padding:30px 32px;font-size:calc(1rem*var(--ts,1))}
+html.deck .panel p{font-size:1.07em;line-height:1.45;max-width:none;margin:0 0 .8em}
+html.deck .hd{gap:18px;margin-bottom:1rem}
+html.deck h2{font-size:1.55em;line-height:1.12}
+html.deck .roundel{width:68px;height:68px;font-size:2.5rem}
+html.deck .plate{height:100%;min-height:0;display:flex;flex-direction:column;padding:0 28px 22px}
+html.deck .plate>svg{flex:1 1 0;min-height:0;height:auto}
+html.deck .row{margin-top:10px}
+html.deck .cap{font-size:1.02rem;min-height:3.1em;margin-top:8px}
+html.deck .calc{flex:1;min-height:0;grid-template-columns:330px minmax(0,1fr);gap:30px;align-items:center}
+html.deck .big{font-size:2.6rem}
+html.deck .errs{grid-template-columns:1fr;align-content:center}
+html.deck .errs .panel{grid-column:1/-1;align-self:center;font-size:calc(.95rem*var(--ts,1))}
+html.deck .errs .ledger li{grid-template-columns:5fr 7fr;padding:10px 0}
+html.deck .ledger b{font-size:.92em}
+html.deck .facade{position:absolute;left:50%;top:62px;width:960px;max-width:none;margin-left:-480px}
+html.deck .arch h1{font-size:2.1rem}
+html.deck .arch p{font-size:1.05rem;margin-top:.6rem}
+html.deck .arch .in{padding:20px 44px}
+html.deck .col{flex-basis:56px}
+html.deck .steps{margin-top:16px}
+html.deck footer .key{display:none}
+html.deck footer .in{max-width:none;margin:62px 52px 38px;height:calc(100% - 100px);padding:50px 72px;background:var(--black);border:5px solid var(--frame);display:flex;flex-direction:column;justify-content:center}
+html.deck .inscr{font-size:2rem}
+html.deck #dots{display:flex;position:fixed;right:16px;top:50%;transform:translateY(-50%);flex-direction:column;gap:12px;z-index:30}
+#dots button{width:14px;height:14px;border-radius:50%;border:2px solid #f0e4c8;background:transparent;padding:0;cursor:pointer}
+#dots button.on{background:var(--ochre);border-color:var(--ochre)}
+html.deck #hint{display:block;position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;font:700 14px 'Cinzel',Georgia,serif;letter-spacing:.1em;color:#f0e4c8;background:rgba(21,16,12,.7);padding:.5em 1.1em;transition:opacity .6s}
+html.deck #hint.gone{opacity:0;pointer-events:none}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .hr{stroke-dasharray:none;stroke-dashoffset:0}
+  .ray{stroke-dasharray:7 9}
+}
+</style>
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+<div id="bar"></div>
+
+<div id="deck">
+<header class="temple screen" data-name="Start"><div class="stage">
+  <div class="facade">
+    <svg class="ped" id="pedSvg" viewBox="0 0 1000 150" role="img" aria-label="Temple pediment with a rising Sun"></svg>
+    <div class="arch">
+      <div class="key"></div>
+      <div class="in">
+        <h1>Eratosthenes measures the Earth</h1>
+        <p>Around 240 BCE, a librarian compared the shadows of two Egyptian cities and worked out how big the planet is. He landed within a few percent.</p>
+      </div>
+      <div class="key"></div>
+    </div>
+    <div class="cols">
+      <i class="col"></i>
+      <svg id="heroSvg" viewBox="0 0 1000 400" role="img" aria-label="Parallel sunrays hit the Earth. Two cities, Syene and Alexandria, sit at different angles to the rays." style="--halo:#15100c"></svg>
+      <i class="col"></i>
+    </div>
+    <div class="steps"><i></i><i></i><i></i></div>
+  </div>
+</div></header>
+
+<main>
+  <div class="band key"></div>
+
+  <div class="zone o screen"><div class="stage"><section class="sec" id="s1">
+    <div class="panel">
+      <div class="hd"><div class="roundel" aria-hidden="true">α</div><h2>A well that lights up once a year</h2></div>
+      <p>Eratosthenes ran the Library of Alexandria. Travellers told him about a well in Syene, now Aswan, far to the south. Once a year, at noon on the summer solstice, sunlight reached the water at the bottom. Nothing in town cast a shadow. The Sun was directly overhead.</p>
+      <p>Drag the Sun across the sky. The light only reaches the water when the Sun stands exactly above the well.</p>
+    </div>
+    <div class="plate" id="wellFig">
+      <svg viewBox="0 0 800 440" role="img" aria-label="A deep well in the ground. Sunlight enters the well and reaches the water only when the Sun is directly overhead." style="--halo:#15100c">
+        <defs>
+          <clipPath id="shaftClip"><rect x="370" y="200" width="60" height="200"/></clipPath>
+          <pattern id="hatch" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="16" height="16" fill="#c8642b"/><line x1="0" y1="0" x2="0" y2="16" stroke="#15100c" stroke-opacity=".4" stroke-width="4"/></pattern>
+        </defs>
+        <path id="sunArc" fill="none" stroke="rgba(240,228,200,.35)" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round"/>
+        <g id="wellRays"></g>
+        <rect x="0" y="200" width="800" height="240" fill="url(#hatch)"/>
+        <line x1="0" y1="200" x2="800" y2="200" class="ln" stroke-width="3.5"/>
+        <rect x="370" y="200" width="60" height="200" fill="#0b0705"/>
+        <polygon id="beam" fill="#f2c14e" opacity=".8" clip-path="url(#shaftClip)"/>
+        <rect x="370" y="384" width="60" height="16" fill="#f0e4c8" opacity=".92"/>
+        <path d="M370 392 q7.5 -6 15 0 t15 0 t15 0 t15 0" fill="none" stroke="#15100c" stroke-width="2"/>
+        <ellipse id="glow" cx="400" cy="386" rx="44" ry="13" fill="#fff3c4" opacity="0"/>
+        <rect x="364" y="196" width="6" height="204" fill="#7a3a18"/><rect x="430" y="196" width="6" height="204" fill="#7a3a18"/>
+        <g id="sunG"></g>
+        <text class="t halo" x="24" y="248">Syene</text>
+        <text class="t2 halo" x="24" y="276">Aswan today</text>
+        <text class="t2 halo" x="452" y="428">water</text>
+      </svg>
+      <div class="row"><span class="ui" style="min-width:6em">Move the Sun</span><div style="flex:1;min-width:200px"><input id="wSlider" type="range" min="0" max="1000" value="0" aria-label="Sun position from morning to afternoon"><div class="ticks"><span>morning</span><span>noon</span><span>afternoon</span></div></div></div>
+      <div class="row"><button class="btn ghost" id="wReplay" type="button">Replay</button><span class="read" id="wAng" aria-live="polite"></span></div>
+      <p class="cap" id="wStatus" style="min-height:3em"></p>
+    </div>
+  </section></div></div>
+
+  <div class="band key"></div>
+
+  <div class="zone b screen"><div class="stage"><section class="sec" id="s2">
+    <div class="panel">
+      <div class="hd"><div class="roundel" aria-hidden="true">β</div><h2>The same minute, 800 km north</h2></div>
+      <p>In Alexandria, at that same moment, an upright stick still cast a shadow. Same Sun, same minute, different result. The shadow was about one eighth as long as the stick. That means the Sun was 7.2° away from straight overhead.</p>
+      <p>Drag the slider to move north of the well. The farther you go, the longer the shadow. Roughly every 111 km adds a degree.</p>
+    </div>
+    <div class="plate" id="altFig">
+      <svg viewBox="0 0 900 380" role="img" aria-label="Two sticks side by side. In Syene the Sun is overhead and there is no shadow. In Alexandria the rays are slanted and the stick casts a shadow." style="--halo:#15100c">
+        <defs><pattern id="hatch2" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="16" height="16" fill="#c8642b"/><line x1="0" y1="0" x2="0" y2="16" stroke="#15100c" stroke-opacity=".4" stroke-width="4"/></pattern></defs>
+        <rect x="40" y="300" width="370" height="30" fill="url(#hatch2)"/>
+        <rect x="490" y="300" width="370" height="30" fill="url(#hatch2)"/>
+        <line x1="40" y1="300" x2="410" y2="300" class="ln"/><line x1="490" y1="300" x2="860" y2="300" class="ln"/>
+        <line x1="450" y1="30" x2="450" y2="350" stroke="rgba(240,228,200,.3)" stroke-width="2.5" stroke-dasharray="3 9" stroke-linecap="round"/>
+        <g id="altG"></g>
+        <line class="stick" x1="225" y1="300" x2="225" y2="140"/>
+        <line class="stick" x1="675" y1="300" x2="675" y2="140"/>
+        <circle cx="225" cy="140" r="7" fill="#e3a53b"/><circle cx="675" cy="140" r="7" fill="#e3a53b"/>
+        <text class="t" x="225" y="368" text-anchor="middle">Syene</text>
+        <text class="t" x="675" y="368" text-anchor="middle">Alexandria</text>
+        <text class="t2" x="44" y="368">south</text>
+        <text class="t2" x="856" y="368" text-anchor="end">north</text>
+        <text class="t2 halo" x="246" y="236">no shadow</text>
+      </svg>
+      <div class="row"><span class="ui" style="min-width:6em">Go north</span><input id="aSlider" type="range" min="0" max="1600" step="10" value="800" style="flex:1;min-width:200px" aria-label="Distance north of Syene in kilometres"></div>
+      <p class="read" id="aRead" style="margin:10px 0 0" aria-live="polite"></p>
+    </div>
+  </section></div></div>
+
+  <div class="band key"></div>
+
+  <div class="zone o screen"><div class="stage"><section class="sec" id="s3">
+    <div class="panel">
+      <div class="hd"><div class="roundel" aria-hidden="true">γ</div><h2>From a shadow to the centre of the Earth</h2></div>
+      <p>Eratosthenes took two things as given. The Earth is round, and the Sun is so far away that its rays arrive parallel. After that, one piece of school geometry does the rest.</p>
+      <p>Step through it.</p>
+    </div>
+    <div class="plate" id="geoFig">
+      <svg id="geoSvg" viewBox="0 0 760 500" role="img" aria-label="Diagram of the Earth with parallel rays, two cities, and the matching angles at the stick and at the centre." style="--halo:#15100c"></svg>
+      <p class="cap" id="geoCap" aria-live="polite"></p>
+      <div class="row">
+        <button class="btn ghost" id="gBack" type="button">Back</button>
+        <button class="btn" id="gNext" type="button">Next step</button>
+        <div class="dots" id="gDots"></div>
+      </div>
+    </div>
+  </section></div></div>
+
+  <div class="band key"></div>
+
+  <div class="zone b screen"><div class="stage"><section class="sec" id="s4">
+    <div class="panel">
+      <div class="hd"><div class="roundel" aria-hidden="true">δ</div><h2>Fifty slices</h2></div>
+      <p>7.2° is 360° divided by 50. The distance between the two cities is one slice, so the whole Earth holds fifty of them. Eratosthenes had that distance as 5,000 stadia. Multiply by fifty and you have the circumference.</p>
+      <p>A stadion is an ancient Greek unit of length. Nobody is sure which version he used, so the answer has some play in it. Try different values.</p>
+    </div>
+    <div class="plate" id="calcFig">
+      <div class="calc">
+        <svg id="ring" viewBox="0 0 420 420" role="img" aria-label="A circle cut into equal slices, each one the angle between the two cities."></svg>
+        <div>
+          <div class="fld"><div class="lab"><span class="ui">Shadow angle</span><span class="read" id="vAng"></span></div><input id="cAng" type="range" min="4" max="12" step="0.1" value="7.2" aria-label="Shadow angle in degrees"></div>
+          <div class="fld"><div class="lab"><span class="ui">Distance between cities</span><span class="read" id="vDist"></span></div><input id="cDist" type="range" min="3000" max="8000" step="100" value="5000" aria-label="Distance between the cities in stadia"></div>
+          <div class="seg" role="radiogroup" aria-label="Length of a stadion">
+            <label><input type="radio" name="st" value="157.5" checked><span>Egyptian stadion, 157.5 m</span></label>
+            <label><input type="radio" name="st" value="185"><span>Attic stadion, 185 m</span></label>
+          </div>
+          <p class="eq" id="eq"></p>
+          <p class="big"><span id="kmv">0</span> <small>km</small></p>
+          <p class="verdict" id="verdict"></p>
+          <div class="bl"><span>His answer</span><span id="b1v"></span></div><div class="track"><i class="g" id="b1"></i></div>
+          <div class="bl"><span>Measured today, pole to pole</span><span>40,008 km</span></div><div class="track"><i class="q" id="b2"></i></div>
+          <div class="row"><button class="btn ghost" id="cReset" type="button">Reset to 7.2° and 5,000</button></div>
+        </div>
+      </div>
+    </div>
+  </section></div></div>
+
+  <div class="band key"></div>
+
+  <div class="zone o screen"><div class="stage"><section class="sec errs">
+    <div class="panel" style="grid-column:1/-1">
+      <div class="hd"><div class="roundel" aria-hidden="true">ε</div><h2>What he got wrong</h2></div>
+      <p class="lead">His inputs were rough. The result was still close, because the method was sound.</p>
+      <ul class="ledger">
+        <li><b>The cities share no meridian</b><span>Alexandria is about 3° of longitude west of Syene, so the line between them is not due north.</span></li>
+        <li><b>Syene was not on the tropic</b><span>The town sits slightly north of the Tropic of Cancer, so the Sun was never quite overhead.</span></li>
+        <li><b>The distance was an estimate</b><span>Nobody could measure 800 km exactly. The 5,000 stadia came from surveyors and travel times.</span></li>
+        <li><b>The Sun is a disc, not a dot</b><span>It spans about half a degree of sky, so shadow edges blur.</span></li>
+        <li><b>A stadion has no single length</b><span>Estimates run from about 157 m to 185 m. That moves the answer by 15% or more.</span></li>
+      </ul>
+      <p class="verdictline">With the shorter stadion he lands about 1 to 2% under the modern figure. With the longer one he overshoots by roughly 15%. Either way, a stick and a well got him in the right ballpark.</p>
+    </div>
+  </section></div></div>
+</main>
+
+<footer class="screen"><div class="stage">
+  <div class="key"></div>
+  <div class="in">
+    <h2>More about Eratosthenes</h2>
+    <ul>
+      <li>He is credited with coining the word geography.</li>
+      <li>He devised a sieve for finding prime numbers, still taught today.</li>
+      <li>Rivals reportedly nicknamed him Beta, for being second best at everything.</li>
+    </ul>
+    <p class="note">His own writing on the measurement is lost. The story reaches us through later authors, so details such as the stadion length and the exact distance vary between accounts.</p>
+    <p class="inscr">ΕΡΑΤΟΣΘΕΝΗΣ ΕΜΕΤΡΗΣΕ ΤΗΝ ΓΗΝ<small>Eratosthenes measured the Earth</small></p>
+  </div>
+</div></footer>
+</div>
+<nav id="dots" aria-label="Screens"></nav>
+<div id="hint">Press ↓ for the next screen</div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const rad=d=>d*Math.PI/180;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const f1=n=>n.toFixed(1), fmt=n=>Math.round(n).toLocaleString('en-US');
+const OCH='#e3a53b', CL='#c8642b', SL='#f0e4c8', BK='#15100c', BR='#e8844a', BL='#16658c', BX='#0d4f73';
+const G=ch=>`<tspan class="gr">${ch}</tspan>`;
+
+const cbs=new Map();
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){const cb=cbs.get(e.target); if(cb){cb();} cbs.delete(e.target); io.unobserve(e.target);}
+}),{threshold:.3});
+const hooks=new Map();
+const onView=(el,cb)=>{hooks.set(el,cb);cbs.set(el,cb);io.observe(el);};
+
+const bar=$('#bar');
+const prog=()=>{const h=document.documentElement.scrollHeight-innerHeight; bar.style.height=(h>0?Math.min(100,scrollY/h*100):0)+'%';};
+addEventListener('scroll',prog,{passive:true}); addEventListener('resize',prog); prog();
+
+/* helios disc with triangular rays */
+function heliosRays(cx,cy,r1,r2,n,a0,a1,fill){
+  let s=''; const step=(a1-a0)/n;
+  for(let i=0;i<n;i++){
+    const a=a0+step*(i+.5), hw=step*.32;
+    const p=(ang,rr)=>[(cx+rr*Math.sin(rad(ang))).toFixed(1),(cy-rr*Math.cos(rad(ang))).toFixed(1)];
+    const b1=p(a-hw,r1), b2=p(a+hw,r1), tip=p(a,i%2?r2*.9:r2);
+    s+=`<polygon points="${b1} ${b2} ${tip}" fill="${fill}" stroke="${BK}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  }
+  return s;
+}
+
+/* ---------- PEDIMENT ---------- */
+(()=>{
+  let h=`<defs><clipPath id="tymp"><polygon points="62,138 500,28 938,138"/></clipPath></defs>
+  <polygon points="0,150 500,6 1000,150" fill="${SL}" stroke="${BK}" stroke-width="8" stroke-linejoin="miter"/>
+  <polygon points="62,138 500,28 938,138" fill="${BK}"/>
+  <g clip-path="url(#tymp)">
+    ${heliosRays(500,142,34,86,15,-84,84,OCH)}
+    <circle cx="500" cy="142" r="30" fill="${OCH}"/>
+    <circle cx="500" cy="142" r="30" fill="none" stroke="${BK}" stroke-width="3"/>
+    <circle cx="500" cy="142" r="21" fill="none" stroke="${BK}" stroke-width="2" opacity=".5"/>
+  </g>`;
+  [[230,122],[300,104],[370,88],[630,88],[700,104],[770,122]].forEach(([x,y])=>h+=`<circle cx="${x}" cy="${y}" r="4.5" fill="${SL}"/>`);
+  $('#pedSvg').innerHTML=h;
+})();
+
+/* ---------- HERO FRIEZE ---------- */
+(()=>{
+  const svg=$('#heroSvg'), cx=700, cy=200, r=150, a=rad(24), sx=-90, sy=200, sr=205;
+  const S={x:cx-r,y:cy}, A={x:cx-r*Math.cos(a),y:cy-r*Math.sin(a)};
+  let h=`<rect width="1000" height="400" fill="${BK}"/>`;
+  h+=`<g class="sunG">${heliosRays(sx,sy,sr+6,sr+52,30,0,360,OCH)}<circle cx="${sx}" cy="${sy}" r="${sr}" fill="${OCH}"/><circle cx="${sx}" cy="${sy}" r="${sr-16}" fill="none" stroke="${BK}" stroke-width="3" opacity=".5"/><circle cx="${sx}" cy="${sy}" r="${sr-34}" fill="none" stroke="${BK}" stroke-width="2" opacity=".35"/></g>`;
+  const R0=sr+60, rays=[];
+  for(let y=40;y<=360;y+=22){ if(Math.abs(y-cy)>=r-8||Math.abs(y-S.y)<9||Math.abs(y-A.y)<9) continue; rays.push([y,false]); }
+  rays.push([S.y,true],[A.y,true]); rays.sort((p,q)=>p[0]-q[0]);
+  rays.forEach(([y,hot],i)=>{
+    const x1=sx+Math.sqrt(R0*R0-(y-sy)**2), x2=cx-Math.sqrt(r*r-(y-cy)**2);
+    h+=`<line class="hr${hot?' hot':''}" x1="${x1.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y.toFixed(1)}" style="--len:${(x2-x1).toFixed(1)};--i:${i}"/>`;
+  });
+  h+=`<g class="earthG"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${CL}" stroke="${SL}" stroke-width="3.5"/>`;
+  [-100,-45,45,100].forEach(dy=>{const w=Math.sqrt(r*r-dy*dy); h+=`<line class="grid" x1="${cx-w}" y1="${cy+dy}" x2="${cx+w}" y2="${cy+dy}"/>`;});
+  [138,100,60,22].forEach(rx=>h+=`<ellipse class="grid" cx="${cx}" cy="${cy}" rx="${rx}" ry="${r}"/>`);
+  h+='</g>';
+  const sa=[S.x-34,S.y], aa=[A.x-34*Math.cos(a),A.y-34*Math.sin(a)];
+  h+=`<g class="marks">
+    <line class="stick" x1="${S.x}" y1="${S.y}" x2="${sa[0]}" y2="${sa[1]}"/>
+    <line class="stick" x1="${A.x.toFixed(1)}" y1="${A.y.toFixed(1)}" x2="${aa[0].toFixed(1)}" y2="${aa[1].toFixed(1)}"/>
+    <circle class="pulse" cx="${S.x}" cy="${S.y}" r="7" fill="none" stroke="${SL}" stroke-width="2"/>
+    <circle cx="${S.x}" cy="${S.y}" r="6.5" fill="${SL}" stroke="${BK}" stroke-width="2"/><circle cx="${A.x.toFixed(1)}" cy="${A.y.toFixed(1)}" r="6.5" fill="${SL}" stroke="${BK}" stroke-width="2"/>
+    <text class="t halo" x="${S.x-14}" y="${S.y+34}" text-anchor="end">${G('\u03A3')} Syene</text>
+    <text class="t halo" x="${(A.x-48).toFixed(1)}" y="${(A.y-22).toFixed(1)}" text-anchor="end">${G('\u0391')} Alexandria</text>
+  </g>
+  <text class="t2" x="990" y="388" text-anchor="end">Not to scale. Angle between the cities exaggerated.</text>`;
+  svg.innerHTML=h;
+})();
+
+/* ---------- WELL ---------- */
+(()=>{
+  const D=200, W=30, cx=400, gy=200;
+  const beam=$('#beam'), glow=$('#glow'), sun=$('#sunG'), rays=$('#wellRays'), ang=$('#wAng'), st=$('#wStatus'), sl=$('#wSlider');
+  const R=170, p=rad(60);
+  sun.innerHTML=heliosRays(0,0,25,40,12,0,360,OCH)+`<circle r="21" fill="${OCH}"/><circle r="21" fill="none" stroke="${BK}" stroke-width="2.5"/>`;
+  $('#sunArc').setAttribute('d',`M${cx-R*Math.sin(p)},${gy-R*Math.cos(p)} A${R},${R} 0 0 1 ${cx+R*Math.sin(p)},${gy-R*Math.cos(p)}`);
+  const xs=[120,200,280,360,400,440,520,600,680];
+  function render(t){
+    const th=(t-.5)*120, r=rad(th), tn=Math.tan(r), a=Math.abs(th);
+    sun.setAttribute('transform',`translate(${(cx+R*Math.sin(r)).toFixed(1)},${(gy-R*Math.cos(r)).toFixed(1)})`);
+    let h=''; const L=140;
+    xs.forEach(x=>{h+=`<line class="ray" x1="${(x+L*Math.sin(r)).toFixed(1)}" y1="${(gy-L*Math.cos(r)).toFixed(1)}" x2="${x}" y2="${gy}"/>`;});
+    rays.innerHTML=h;
+    const o=tn*D;
+    beam.setAttribute('points',`${cx-W},${gy} ${cx+W},${gy} ${cx+W-o},${gy+D} ${cx-W-o},${gy+D}`);
+    const f=Math.max(0,1-Math.abs(tn)*D/(2*W));
+    glow.style.opacity=(f*.9).toFixed(2);
+    ang.textContent=`Sun ${f1(a)}\u00B0 from vertical`;
+    st.textContent = a<1 ? 'The Sun is overhead. Light reaches the water and the whole shaft glows.'
+      : f>0 ? 'Light just touches the bottom. A little more and it slips off.'
+      : 'Light only hits the shaft wall. The water stays dark.';
+  }
+  let raf, touched=false;
+  function play(){
+    cancelAnimationFrame(raf); touched=false;
+    const t0=performance.now(), dur=reduce?1:4600;
+    (function step(now){
+      if(touched) return;
+      const q=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-q,3), t=e*.5;
+      sl.value=t*1000; render(t);
+      if(q<1) raf=requestAnimationFrame(step);
+    })(t0);
+  }
+  sl.addEventListener('input',()=>{touched=true;cancelAnimationFrame(raf);render(sl.value/1000);});
+  $('#wReplay').addEventListener('click',()=>{sl.value=0;render(0);setTimeout(play,150);});
+  render(0); onView($('#wellFig'),play);
+})();
+
+/* ---------- SAME MINUTE, NORTH ---------- */
+(()=>{
+  const g=$('#altG'), sl=$('#aSlider'), ro=$('#aRead');
+  const gy=300, g1=225, g2=675, H=160;
+  function render(km){
+    const b=km/111.19, r=rad(b), tn=Math.tan(r); let h='';
+    for(let k=-3;k<=3;k++){const x=g1+k*55; h+=`<line class="ray" x1="${x}" y1="40" x2="${x}" y2="${k===0?gy-H:gy}"/>`;}
+    const xe0=g2+H*tn;
+    for(let k=-3;k<=3;k++){
+      const xe=xe0+k*55, sx=xe-tn*260;
+      if(k===0){
+        h+=`<line class="ray hot" x1="${sx.toFixed(1)}" y1="40" x2="${g2}" y2="${gy-H}"/>`;
+        h+=`<line x1="${g2}" y1="${gy-H}" x2="${xe0.toFixed(1)}" y2="${gy}" stroke="${OCH}" stroke-width="1.6" stroke-dasharray="2 8" opacity=".55" stroke-linecap="round"/>`;
+      } else h+=`<line class="ray" x1="${sx.toFixed(1)}" y1="40" x2="${xe.toFixed(1)}" y2="${gy}"/>`;
+    }
+    h+=`<rect x="${g2}" y="300" width="${(H*tn).toFixed(1)}" height="14" fill="${BK}" stroke="${SL}" stroke-width="1.5"/>`;
+    if(b>.4){
+      const Rr=62, p1=[g2,gy-H-Rr], p2=[g2-Rr*Math.sin(r),gy-H-Rr*Math.cos(r)];
+      h+=`<path d="M${p1[0]},${p1[1]} A${Rr},${Rr} 0 0 0 ${p2[0].toFixed(1)},${p2[1].toFixed(1)}" fill="none" stroke="${BR}" stroke-width="4.5" stroke-linecap="round"/>`;
+      h+=`<text class="t tt halo" x="${(g2-(Rr+14)*Math.sin(r/2)-30).toFixed(1)}" y="${(gy-H-(Rr+14)*Math.cos(r/2)+2).toFixed(1)}" text-anchor="end">${f1(b)}\u00B0</text>`;
+    }
+    g.innerHTML=h;
+    ro.textContent=`${km} km north of Syene  /  ${f1(b)}\u00B0  /  shadow is ${b<.4?'0':'1/'+(1/tn).toFixed(1)} of the stick`;
+  }
+  sl.addEventListener('input',()=>render(+sl.value));
+  render(800);
+})();
+
+/* ---------- GEOMETRY STEPPER ---------- */
+(()=>{
+  const svg=$('#geoSvg'), cap=$('#geoCap'), next=$('#gNext'), back=$('#gBack'), dotsEl=$('#gDots');
+  const cx=380, cy=282, r=180, a=rad(32);
+  const S={x:cx,y:cy-r}, A={x:cx+r*Math.sin(a),y:cy-r*Math.cos(a)}, C={x:cx,y:cy};
+  const pt=(o,ang,l)=>[o.x+l*Math.sin(ang),o.y-l*Math.cos(ang)];
+  const f=n=>n.toFixed(1);
+  const arc=(o,rr,ang)=>{const p1=pt(o,0,rr),p2=pt(o,ang,rr);
+    return {d:`M${f(p1[0])},${f(p1[1])} A${rr},${rr} 0 0 1 ${f(p2[0])},${f(p2[1])}`,
+            sec:`M${f(o.x)},${f(o.y)} L${f(p1[0])},${f(p1[1])} A${rr},${rr} 0 0 1 ${f(p2[0])},${f(p2[1])} Z`};};
+  let h=`<circle class="earth" cx="${cx}" cy="${cy}" r="${r}"/>`;
+  [-110,-50,50,110].forEach(dy=>{const w=Math.sqrt(r*r-dy*dy); h+=`<line class="grid" x1="${cx-w}" y1="${cy+dy}" x2="${cx+w}" y2="${cy+dy}"/>`;});
+  h+='<g class="st" data-n="1">';
+  for(let k=-3;k<=3;k++){const x=cx+k*58, y=cy-Math.sqrt(r*r-(k*58)**2); h+=`<line class="ray" x1="${x}" y1="24" x2="${x}" y2="${f(y)}"/>`;}
+  h+='<text class="t2" x="14" y="30">to the Sun</text></g>';
+  const sTip=pt(S,0,38), aTip=pt(A,a,38);
+  h+=`<g class="st" data-n="2">
+    <line class="ray hot" x1="${f(A.x)}" y1="24" x2="${f(A.x)}" y2="${f(A.y)}"/>
+    <line class="stick" x1="${f(S.x)}" y1="${f(S.y)}" x2="${f(sTip[0])}" y2="${f(sTip[1])}"/>
+    <line class="stick" x1="${f(A.x)}" y1="${f(A.y)}" x2="${f(aTip[0])}" y2="${f(aTip[1])}"/>
+    <circle cx="${f(S.x)}" cy="${f(S.y)}" r="6.5" fill="${SL}" stroke="${BK}" stroke-width="2"/><circle cx="${f(A.x)}" cy="${f(A.y)}" r="6.5" fill="${SL}" stroke="${BK}" stroke-width="2"/>
+    <text class="t halo" x="${f(S.x-18)}" y="${f(S.y-14)}" text-anchor="end">${G('\u03A3')} Syene</text>
+    <text class="t halo" x="${f(A.x+30)}" y="${f(A.y+6)}">${G('\u0391')} Alexandria</text>
+  </g>`;
+  const a3=arc(A,64,a), ext=pt(A,a,130), l3=pt(A,a/2,92);
+  h+=`<g class="st" data-n="3">
+    <line class="ln dash" x1="${f(A.x)}" y1="${f(A.y)}" x2="${f(ext[0])}" y2="${f(ext[1])}"/>
+    <path d="${a3.sec}" fill="${SL}" opacity=".3"/><path d="${a3.d}" fill="none" stroke="${SL}" stroke-width="4.5" stroke-linecap="round"/>
+    <text class="t tt halo" x="${f(l3[0]+8)}" y="${f(l3[1])}">7.2\u00B0</text>
+  </g>`;
+  const a4=arc(C,78,a), l4=pt(C,a/2,106);
+  h+=`<g class="st" data-n="4">
+    <line class="ln blk dash" x1="${C.x}" y1="${C.y}" x2="${f(S.x)}" y2="${f(S.y)}"/>
+    <line class="ln blk dash" x1="${C.x}" y1="${C.y}" x2="${f(A.x)}" y2="${f(A.y)}"/>
+    <path d="${a4.sec}" fill="${SL}" opacity=".3"/><path d="${a4.d}" fill="none" stroke="${SL}" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="${C.x}" cy="${C.y}" r="6.5" fill="${SL}" stroke="${BK}" stroke-width="2"/>
+    <text class="t tt halo" x="${f(l4[0]+8)}" y="${f(l4[1]+4)}">7.2\u00B0</text>
+    <text class="t halo" x="${C.x}" y="${C.y+42}" text-anchor="middle">${G('\u039A')} centre of the Earth</text>
+  </g>`;
+  h+=`<g class="st" data-n="5">
+    <path d="M${C.x},${C.y} L${f(S.x)},${f(S.y)} A${r},${r} 0 0 1 ${f(A.x)},${f(A.y)} Z" fill="${OCH}" opacity=".35"/>
+    <path d="M${f(S.x)},${f(S.y)} A${r},${r} 0 0 1 ${f(A.x)},${f(A.y)}" fill="none" stroke="${OCH}" stroke-width="9" stroke-linecap="round"/>
+    <text class="t tg" x="590" y="236">arc ${G('\u03A3')} to ${G('\u0391')}</text>
+    <text class="t" x="590" y="266">7.2\u00B0 of 360\u00B0</text>
+    <text class="t" x="590" y="296">1/50 of the</text>
+    <text class="t" x="590" y="324">circle</text>
+  </g>`;
+  h+='<text class="t2" x="14" y="490">Drawn at 32\u00B0 so it is readable. The real angle is 7.2\u00B0.</text>';
+  svg.innerHTML=h;
+
+  const caps=[
+    'Assumption: the Sun is so far away that its rays arrive as parallel lines.',
+    'Stand an upright stick in each city. Upright means pointing straight away from the Earth\u2019s centre. In Syene the ray runs along the stick, so there is no shadow.',
+    'In Alexandria the ray meets the stick at an angle. The shadow gives you that angle: 7.2\u00B0.',
+    'Extend both sticks down to the centre. The ray at Alexandria runs parallel to the stick at Syene, so the angle at the centre is also 7.2\u00B0.',
+    'So the arc between the cities is 7.2\u00B0 out of 360\u00B0. That is one fiftieth of the way around the Earth.'
+  ];
+  dotsEl.innerHTML=caps.map((_,i)=>`<button class="dot" type="button" aria-label="Go to step ${i+1}" data-i="${i+1}"></button>`).join('');
+  let stage=0, timer=null;
+  function set(n){
+    stage=n;
+    svg.querySelectorAll('.st').forEach(g=>g.classList.toggle('on',+g.dataset.n<=n));
+    cap.textContent=caps[n-1];
+    dotsEl.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i<n));
+    back.disabled=n<=1; next.textContent=n>=5?'Replay':'Next step';
+  }
+  const stop=()=>{if(timer){clearInterval(timer);timer=null;}};
+  function auto(){ set(1); stop(); timer=setInterval(()=>{ if(stage>=5){stop();return;} set(stage+1); },2800); }
+  next.addEventListener('click',()=>{stop(); stage>=5?auto():set(stage+1);});
+  back.addEventListener('click',()=>{stop(); set(Math.max(1,stage-1));});
+  dotsEl.addEventListener('click',e=>{const b=e.target.closest('.dot'); if(b){stop(); set(+b.dataset.i);}});
+  set(reduce?5:1);
+  if(!reduce) onView($('#geoFig'),auto);
+})();
+
+/* ---------- FIFTY SLICES ---------- */
+(()=>{
+  const ring=$('#ring'), cx=210, cy=210, R=196;
+  const ang=$('#cAng'), dist=$('#cDist'), kmv=$('#kmv');
+  const pt=(deg,rr)=>[cx+rr*Math.sin(rad(deg)), cy-rr*Math.cos(rad(deg))];
+  let animateNext=true, shown=0, tw=null;
+  function drawRing(A){
+    const n=Math.ceil(360/A-1e-9); let h='';
+    for(let i=0;i<n;i++){
+      const a0=i*A, a1=Math.min(360,(i+1)*A), p0=pt(a0,R), p1=pt(a1,R), large=(a1-a0)>180?1:0;
+      const cls=i===0?'w0':(i%2?'w1':'w2');
+      h+=`<path class="wedge ${cls}" style="animation-delay:${animateNext?i*38:0}ms" stroke="${BK}" stroke-width="2.5" d="M${cx},${cy} L${p0[0].toFixed(2)},${p0[1].toFixed(2)} A${R},${R} 0 ${large} 1 ${p1[0].toFixed(2)},${p1[1].toFixed(2)} Z"/>`;
+    }
+    const q=360/A, qs=Math.abs(q-Math.round(q))<.05?String(Math.round(q)):q.toFixed(1);
+    h+=`<circle class="hub" cx="${cx}" cy="${cy}" r="84"/><circle cx="${cx}" cy="${cy}" r="76" fill="none" stroke="${OCH}" stroke-width="2"/>
+        <text x="${cx}" y="${cy+14}" text-anchor="middle" style="font:800 54px 'Cinzel',Georgia,serif;fill:${SL}">${qs}</text>
+        <text x="${cx}" y="${cy+44}" text-anchor="middle" style="font:700 15px 'Cinzel',Georgia,serif;letter-spacing:.04em;fill:${OCH}">slices of ${f1(A)}\u00B0</text>`;
+    ring.innerHTML=h;
+  }
+  function tween(to){
+    cancelAnimationFrame(tw); const from=shown, t0=performance.now(), dur=reduce?1:520;
+    (function s(now){const q=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-q,3); shown=from+(to-from)*e; kmv.textContent=fmt(shown); if(q<1) tw=requestAnimationFrame(s);})(t0);
+  }
+  function calc(redraw){
+    const A=+ang.value, Dd=+dist.value, L=+document.querySelector('input[name=st]:checked').value;
+    const stadia=Dd*360/A, km=stadia*L/1000, err=(km-40008)/40008*100, e=Math.abs(err);
+    $('#vAng').textContent=f1(A)+'\u00B0'; $('#vDist').textContent=fmt(Dd)+' stadia';
+    $('#eq').textContent=`${fmt(Dd)} \u00D7 360 \u00F7 ${f1(A)} = ${fmt(stadia)} stadia \u00D7 ${L} m`;
+    tween(km);
+    $('#verdict').textContent=`${e.toFixed(1)}% ${err<0?'below':'above'} today\u2019s value. ${e<3?'Remarkably close.':e<10?'Close.':'Well off.'}`;
+    const mx=Math.max(km,40008)*1.04;
+    $('#b1').style.width=(km/mx*100)+'%'; $('#b2').style.width=(40008/mx*100)+'%';
+    $('#b1v').textContent=fmt(km)+' km';
+    if(redraw) drawRing(A);
+  }
+  [ang,dist].forEach(el=>el.addEventListener('input',()=>{animateNext=false; ring.classList.add('noanim'); calc(true);}));
+  $$('input[name=st]').forEach(el=>el.addEventListener('change',()=>calc(false)));
+  $('#cReset').addEventListener('click',()=>{ang.value=7.2;dist.value=5000;$('input[name=st][value="157.5"]').checked=true;animateNext=true;ring.classList.remove('noanim');calc(true);});
+  calc(false);
+  onView($('#calcFig'),()=>{animateNext=true; ring.classList.remove('noanim'); drawRing(+ang.value);});
+})();
+
+/* ---------- DECK: one 16:9 screen at a time, arrow keys to move ---------- */
+(()=>{
+  const root=document.documentElement, screens=$$('.screen'), dotsEl=$('#dots'), hint=$('#hint');
+  let cur=0, deck=false, lock=0;
+  dotsEl.innerHTML=screens.map((sc,i)=>`<button type="button" aria-label="Go to screen ${i+1}" data-i="${i}"></button>`).join('');
+  const wantDeck=()=>innerWidth>=900&&innerWidth/innerHeight>=1.25;
+  const scale=()=>root.style.setProperty('--s',Math.min(innerWidth/1600,innerHeight/900));
+  function place(){
+    screens.forEach((el,i)=>{el.style.transform=`translateY(${(i-cur)*100}%)`; el.inert=(i!==cur);});
+    dotsEl.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===cur));
+    hint.classList.toggle('gone',cur>0);
+  }
+  function enter(){ hooks.forEach((cb,el)=>{ if(screens[cur].contains(el)) cb(); }); }
+  function go(n){ n=Math.max(0,Math.min(screens.length-1,n)); if(n===cur) return; cur=n; place(); enter(); }
+  function fit(){
+    screens.forEach(sc=>{
+      const st=sc.querySelector('.stage'); if(!st||!sc.querySelector('.panel')) return;
+      let ts=1, g=0; sc.style.setProperty('--ts',1);
+      while(st.scrollHeight>st.clientHeight+1&&ts>.6&&g++<12){ts-=.04; sc.style.setProperty('--ts',ts.toFixed(2));}
+    });
+  }
+  function enable(){
+    deck=true; root.classList.add('deck'); io.disconnect(); cbs.clear();
+    scale(); place(); fit();
+  }
+  function disable(){
+    deck=false; root.classList.remove('deck');
+    screens.forEach(el=>{el.style.transform='';el.inert=false;el.style.removeProperty('--ts');});
+    hooks.forEach((cb,el)=>{cbs.set(el,cb);io.observe(el);});
+  }
+  addEventListener('resize',()=>{ const w=wantDeck(); if(w!==deck){w?enable():disable();} if(deck) scale(); });
+  addEventListener('keydown',e=>{
+    if(!deck||e.altKey||e.ctrlKey||e.metaKey) return;
+    const k=e.key, tag=e.target&&e.target.tagName;
+    if(k==='ArrowDown'||k==='PageDown'){e.preventDefault();go(cur+1);}
+    else if(k==='ArrowUp'||k==='PageUp'){e.preventDefault();go(cur-1);}
+    else if(k==='Home'){e.preventDefault();go(0);}
+    else if(k==='End'){e.preventDefault();go(screens.length-1);}
+    else if(k===' '&&(tag==='BODY'||tag==='HTML')){e.preventDefault();go(cur+(e.shiftKey?-1:1));}
+  });
+  addEventListener('wheel',e=>{
+    if(!deck) return; e.preventDefault();
+    const now=Date.now(); if(now<lock||Math.abs(e.deltaY)<8) return;
+    lock=now+900; go(cur+(e.deltaY>0?1:-1));
+  },{passive:false});
+  let ty=null;
+  addEventListener('touchstart',e=>{ty=e.touches[0].clientY;},{passive:true});
+  addEventListener('touchend',e=>{ if(!deck||ty===null) return; const d=ty-e.changedTouches[0].clientY; ty=null; if(Math.abs(d)>60) go(cur+(d>0?1:-1)); },{passive:true});
+  dotsEl.addEventListener('click',e=>{const b=e.target.closest('button'); if(b) go(+b.dataset.i);});
+  if(wantDeck()) enable();
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(deck) fit(); });
+  window.focus();
+})();
+})();
+</script>
+</body>
+</html>
